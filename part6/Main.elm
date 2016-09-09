@@ -27,9 +27,9 @@ searchResultDecoder =
     --
     -- TODO replace these calls to `hardcoded` with calls to `required`
     decode SearchResult
-        |> hardcoded 0
-        |> hardcoded ""
-        |> hardcoded 0
+        |> required "id" int
+        |> required "full_name" string
+        |> required "stargazers_count" int
 
 
 type alias Model =
@@ -72,7 +72,10 @@ decodeResults json =
         --
         -- Ok (List SearchResult)
         -- Err String
-        _ ->
+        Ok searchResult ->
+            searchResult
+
+        Err string ->
             []
 
 
