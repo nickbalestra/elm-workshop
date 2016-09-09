@@ -33,7 +33,9 @@ searchFeed query =
 
         -- HINT: responseDecoder may be useful here.
         task =
-            "TODO replace this String with a Task using http://package.elm-lang.org/packages/evancz/elm-http/latest/Http#get"
+            Http.get responseDecoder url
+
+        -- "TODO replace this String with a Task using http://package.elm-lang.org/packages/evancz/elm-http/latest/Http#get"
     in
         -- TODO replace this Cmd.none with a call to Task.perform
         -- http://package.elm-lang.org/packages/elm-lang/core/latest/Task#perform
@@ -43,7 +45,16 @@ searchFeed query =
         -- task
         -- HandleSearchResponse
         -- HandleSearchError
-        Cmd.none
+        --
+        -- normal version:
+        -- Task.perform
+        --     HandleSearchError
+        --     HandleSearchResponse
+        --     task
+        --
+        --  pipe version:
+        task
+            |> Task.perform HandleSearchError HandleSearchResponse
 
 
 responseDecoder : Decoder (List SearchResult)
@@ -144,7 +155,18 @@ update msg model =
             --
             -- Hint 3: to check if this is working, break responseDecoder
             -- by changing "stargazers_count" to "description"
-            ( model, Cmd.none )
+            case error of
+                Http.Timeout ->
+                    ( { model | errorMessage = Just "Timeout" }, Cmd.none )
+
+                Http.NetworkError ->
+                    ( { model | errorMessage = Just "Network Error" }, Cmd.none )
+
+                Http.UnexpectedPayload message ->
+                    ( { model | errorMessage = Debug.log (message) (Just "foo") }, Cmd.none )
+
+                Http.BadResponse value message ->
+                    ( { model | errorMessage = Just ((toString value) ++ message) }, Cmd.none )
 
         SetQuery query ->
             ( { model | query = query }, Cmd.none )
