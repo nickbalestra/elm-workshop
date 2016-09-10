@@ -18,11 +18,13 @@ all =
                         """{ "pizza": [] }"""
 
                     isErrorResult result =
-                        -- TODO return True if the given Result is an Err of some sort,
-                        -- and False if it is an Ok of some sort.
-                        --
-                        -- Result docs: http://package.elm-lang.org/packages/elm-lang/core/4.0.1/Result
-                        False
+                        case result of
+                            Ok value ->
+                                False
+
+                            -- Result docs: http://package.elm-lang.org/packages/elm-lang/core/4.0.1/Result
+                            Err value ->
+                                True
                 in
                     json
                         |> decodeString responseDecoder
@@ -31,7 +33,8 @@ all =
         , test "it successfully decodes a valid response" <|
             \() ->
                 """{ "items": [
-                    /* TODO: put JSON here! */
+                    { "id": 5, "full_name": "foo", "stargazers_count": 42 },
+                    { "id": 3, "full_name": "bar", "stargazers_count": 77 }
                  ] }"""
                     |> decodeString responseDecoder
                     |> Expect.equal
@@ -40,17 +43,11 @@ all =
                             , { id = 3, name = "bar", stars = 77 }
                             ]
                         )
-        , test "it decodes one SearchResult for each 'item' in the JSON" <|
-            \() ->
+        , fuzz (list int) "it decodes one SearchResult for each 'item' in the JSON" <|
+            \ids ->
                 let
-                    -- TODO convert this to a fuzz test that generates a random
-                    -- list of ids instead of this hardcoded list of three ids.
-                    --
                     -- fuzz test docs: http://package.elm-lang.org/packages/project-fuzzball/test/2.0.1/Test#fuzz
                     -- Fuzzer docs: http://package.elm-lang.org/packages/project-fuzzball/test/2.0.1/Fuzz
-                    ids =
-                        [ 12, 5, 76 ]
-
                     jsonFromId id =
                         """{"id": """ ++ toString id ++ """, "full_name": "foo", "stargazers_count": 42}"""
 
