@@ -30,15 +30,12 @@ searchFeed query =
                 ++ "&q="
                 ++ query
                 ++ "+language:elm&sort=stars&order=desc"
-
-        task =
-            Http.get responseDecoder url
     in
         -- normal version:
         -- Task.perform HandleSearchError HandleSearchResponse task
         --
         --  pipe version:
-        task
+        Http.get responseDecoder url
             |> Task.perform HandleSearchError HandleSearchResponse
 
 
