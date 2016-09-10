@@ -19,11 +19,11 @@ all =
 
                     isErrorResult result =
                         case result of
-                            Ok value ->
+                            Ok _ ->
                                 False
 
                             -- Result docs: http://package.elm-lang.org/packages/elm-lang/core/4.0.1/Result
-                            Err value ->
+                            Err _ ->
                                 True
                 in
                     json
