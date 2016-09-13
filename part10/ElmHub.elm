@@ -83,6 +83,7 @@ viewMinStarsError message =
 type Msg
     = Search
       -- TODO add a constructor for Options OptionsMsg
+    | Options OptionsMsg
     | SetQuery String
     | DeleteById Int
     | HandleSearchResponse (List SearchResult)
@@ -96,6 +97,9 @@ update msg model =
         -- TODO Add a branch for Options which updates model.options
         --
         -- HINT: calling updateOptions will save a lot of time here!
+        Options message ->
+            ( { model | options = updateOptions message model.options }, Cmd.none )
+
         Search ->
             ( model, githubSearch (getQueryString model) )
 
@@ -157,7 +161,8 @@ view model =
             , span [ class "tagline" ] [ text "Like GitHub, but for Elm things." ]
             ]
         , div [ class "search" ]
-            [ text "TODO call viewOptions here. Use Html.map to avoid a type mismatch!"
+            -- [ text "TODO call viewOptions here. Use Html.map to avoid a type mismatch!"
+            [ Html.map Options (viewOptions model.options)
             , div [ class "search-input" ]
                 [ input [ class "search-query", onInput SetQuery, defaultValue model.query ] []
                 , button [ class "search-button", onClick Search ] [ text "Search" ]
@@ -282,6 +287,11 @@ If you have time, give this refactor a shot and see how it turns out!
 Writing something out the long way like this, and then refactoring to something
 nicer, is generally the preferred way to go about building things in Elm.
 -}
+queryParam : String -> String -> String
+queryParam key value =
+    "+" ++ key ++ ":" ++ value
+
+
 getQueryString : Model -> String
 getQueryString model =
     -- See https://developer.github.com/v3/search/#example for how to customize!
@@ -289,13 +299,11 @@ getQueryString model =
         ++ Auth.token
         ++ "&q="
         ++ model.query
-        ++ "+in:"
-        ++ model.options.searchIn
-        ++ "+stars:>="
-        ++ (toString model.options.minStars)
-        ++ "+language:elm"
+        ++ queryParam "in" model.options.searchIn
+        ++ queryParam "stars" (">=" ++ toString model.options.minStars)
+        ++ queryParam "language" "elm"
         ++ (if String.isEmpty model.options.userFilter then
                 ""
             else
-                "+user:" ++ model.options.userFilter
+                queryParam "user" model.options.userFilter
            )
